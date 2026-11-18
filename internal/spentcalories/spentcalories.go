@@ -34,7 +34,10 @@ func parseTraining(data string) (int, string, time.Duration, error) {
 	if err != nil {
 		return 0, "", 0, err
 	}
-	return steps, pars[1], duration, nil
+	if duration <= 0 {
+		return 0, "", 0, fmt.Errorf("продолжительность тренировки должна быть больше 0")
+	}
+	return steps, strings.ToLower(strings.TrimSpace(pars[1])), duration, nil
 }
 
 func distance(steps int, height float64) float64 {
@@ -62,12 +65,15 @@ func TrainingInfo(data string, weight, height float64) (string, error) {
 		return "", err
 	}
 	var distanceKm, speed, calories float64
+	displayActivity := "Ходьба"
 	switch activity {
 	case "бег":
+		displayActivity = "Бег"
 		distanceKm = distance(steps, height)
 		speed = meanSpeed(steps, height, duration)
 		calories, err = RunningSpentCalories(steps, weight, height, duration)
 	case "ходьба":
+		displayActivity = "Ходьба"
 		distanceKm = distance(steps, height)
 		speed = meanSpeed(steps, height, duration)
 		calories, err = WalkingSpentCalories(steps, weight, height, duration)
@@ -79,8 +85,8 @@ func TrainingInfo(data string, weight, height float64) (string, error) {
 		return "", err
 	}
 	return fmt.Sprintf(
-		"Тип тренировки: %s\n Длительность: %.2f ч.\n Дистанция:%.2f км.\n Скорость:%.2f км/ч \n Сожгли калорий: %.2f",
-		activity,
+		"Тип тренировки: %s\nДлительность: %.2f ч.\nДистанция: %.2f км.\nСкорость: %.2f км/ч\nСожгли калорий: %.2f\n",
+		displayActivity,
 		duration.Hours(),
 		distanceKm,
 		speed,
